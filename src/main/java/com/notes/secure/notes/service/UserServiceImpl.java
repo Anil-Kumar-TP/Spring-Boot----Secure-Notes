@@ -2,16 +2,23 @@ package com.notes.secure.notes.service;
 
 import com.notes.secure.notes.dtos.UserDTO;
 import com.notes.secure.notes.model.AppRole;
+import com.notes.secure.notes.model.PasswordResetToken;
 import com.notes.secure.notes.model.Role;
 import com.notes.secure.notes.model.User;
+import com.notes.secure.notes.repository.PasswordResetTokenRepository;
 import com.notes.secure.notes.repository.RoleRepository;
 import com.notes.secure.notes.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
+
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -24,6 +31,12 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     PasswordEncoder passwordEncoder;
+
+    @Autowired
+    PasswordResetTokenRepository passwordResetTokenRepository;
+
+    @Value("${frontend.url}")
+    String frontendUrl;
 
     @Override
     public void updateUserRole(Long userId, String roleName) {
@@ -98,6 +111,18 @@ public class UserServiceImpl implements UserService {
         } catch (Exception e) {
             throw new RuntimeException("Failed to update password");
         }
+    }
+
+    @Override
+    public void generatePasswordResetToken(String email){
+        User user = userRepository.findByEmail(email).orElseThrow(()->new RuntimeException("User not found"));
+        String token = UUID.randomUUID().toString();
+        Instant expiryDate = Instant.now().plus(Duration.ofHours(24));
+        PasswordResetToken resetToken = new PasswordResetToken(token,expiryDate,user);
+        passwordResetTokenRepository.save(resetToken);
+
+        String resetUrl = frontendUrl + "/reset-password?token=" + token;
+        //send email to user
     }
 
     private UserDTO convertToDto(User user) {
