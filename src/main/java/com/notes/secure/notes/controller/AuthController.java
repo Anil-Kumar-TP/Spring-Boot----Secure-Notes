@@ -11,6 +11,7 @@ import com.notes.secure.notes.security.request.SignupRequest;
 import com.notes.secure.notes.security.response.LoginResponse;
 import com.notes.secure.notes.security.response.MessageResponse;
 import com.notes.secure.notes.security.response.UserInfoResponse;
+import com.notes.secure.notes.security.services.UserDetailsImpl;
 import com.notes.secure.notes.service.TotpService;
 import com.notes.secure.notes.service.UserService;
 import com.notes.secure.notes.utils.AuthUtil;
@@ -80,7 +81,7 @@ public class AuthController {
 //      set the authentication
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
 
         String jwtToken = jwtUtils.generateTokenFromUsername(userDetails);
 
